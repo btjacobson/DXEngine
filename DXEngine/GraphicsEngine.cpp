@@ -2,6 +2,7 @@
 #include "SwapChain.h"
 #include "DeviceContext.h"
 #include "VertexBuffer.h"
+#include "VertexShader.h"
 
 #include <d3dcompiler.h>
 
@@ -91,30 +92,46 @@ bool GraphicsEngine::Release()
 	return true;
 }
 
+bool GraphicsEngine::CompileVertexShader(const wchar_t* fileName, const char* entryPointName, void** shaderByteCode, size_t* byteCodeSize)
+{
+	ID3DBlob* errorBlob = nullptr;
+	if (!SUCCEEDED(::D3DCompileFromFile(fileName, nullptr, nullptr, entryPointName, "vs_5_0", 0, 0, &m_Blob, &errorBlob)))
+	{
+		if (errorBlob)
+		{
+			errorBlob->Release();
+		}
+		return false;
+	}
+
+	*shaderByteCode = m_Blob->GetBufferPointer();
+	*byteCodeSize = m_Blob->GetBufferSize();
+
+	return true;
+}
+
+void GraphicsEngine::ReleaseCompiledShader()
+{
+	if (m_Blob)
+	{
+		m_Blob->Release();
+	}
+}
+
 bool GraphicsEngine::CreateShaders()
 {
 	ID3DBlob* errblob = nullptr;
-	D3DCompileFromFile(L"../shader.fx", nullptr, nullptr, "vsmain", "vs_5_0", NULL, NULL, &m_VertexShaderBlob, &errblob);
 	D3DCompileFromFile(L"../shader.fx", nullptr, nullptr, "psmain", "ps_5_0", NULL, NULL, &m_PixelShaderBlob, &errblob);
-	
-	m_D3dDevice->CreateVertexShader(m_VertexShaderBlob->GetBufferPointer(), m_VertexShaderBlob->GetBufferSize(), nullptr, &m_VertexShader);
 	m_D3dDevice->CreatePixelShader(m_PixelShaderBlob->GetBufferPointer(), m_PixelShaderBlob->GetBufferSize(), nullptr, &m_PixelShader);
 
 	return true;
 }
 
 bool GraphicsEngine::SetShaders()
-{	
-	m_ImmContext->VSSetShader(m_VertexShader, nullptr, 0);
+{		
 	m_ImmContext->PSSetShader(m_PixelShader, nullptr, 0);
 
 	return true;
-}
-
-void GraphicsEngine::GetShaderBufferAndSize(void** bytecode, UINT* size)
-{
-	*bytecode = this->m_VertexShaderBlob->GetBufferPointer();
-	*size = (UINT)this->m_VertexShaderBlob->GetBufferSize();
 }
 
 GraphicsEngine* GraphicsEngine::GetInstance()
@@ -137,4 +154,17 @@ DeviceContext* GraphicsEngine::GetImmediateDeviceContext()
 VertexBuffer* GraphicsEngine::CreateVertexBuffer()
 {
 	return new VertexBuffer();
+}
+
+VertexShader* GraphicsEngine::CreateVertexShader(const void* shaderByteCode, size_t byteCodeSize)
+{
+	VertexShader* vertexShader = new VertexShader();
+	
+	if (!vertexShader->Init(shaderByteCode, byteCodeSize))
+	{
+		vertexShader->Release();
+		return nullptr;
+	}
+
+	return vertexShader;
 }

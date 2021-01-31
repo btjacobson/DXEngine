@@ -4,6 +4,7 @@
 
 class SwapChain;
 class VertexBuffer;
+class VertexShader;
 
 class DeviceContext
 {
@@ -16,6 +17,7 @@ public:
 	void DrawTriangleList(UINT vertexCount, UINT startVertexIndex);
 	void DrawTriangleStrip(UINT vertexCount, UINT startVertexIndex);
 	void SetViewportSize(UINT width, UINT height);
+	void SetVertexShader(VertexShader* vertexShader);
 	bool Release();
 
 private:
