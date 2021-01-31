@@ -2,10 +2,13 @@
 #include "SwapChain.h"
 #include "DeviceContext.h"
 #include "VertexBuffer.h"
+#include "ConstantBuffer.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
 
 #include <d3dcompiler.h>
+
+#include <iostream>
 
 GraphicsEngine::GraphicsEngine()
 {
@@ -100,6 +103,7 @@ bool GraphicsEngine::CompileVertexShader(const wchar_t* fileName, const char* en
 	{
 		if (errorBlob)
 		{
+			std::cout << (char*)errorBlob->GetBufferPointer();
 			errorBlob->Release();
 		}
 		return false;
@@ -157,6 +161,11 @@ DeviceContext* GraphicsEngine::GetImmediateDeviceContext()
 VertexBuffer* GraphicsEngine::CreateVertexBuffer()
 {
 	return new VertexBuffer();
+}
+
+ ConstantBuffer* GraphicsEngine::CreateConstantBuffer()
+{
+	return new ConstantBuffer();
 }
 
 VertexShader* GraphicsEngine::CreateVertexShader(const void* shaderByteCode, size_t byteCodeSize)
