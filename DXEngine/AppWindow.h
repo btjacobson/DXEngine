@@ -15,6 +15,8 @@ public:
 	AppWindow();
 	~AppWindow();
 
+	void UpdateQuadPosition();
+
 	virtual void OnCreate() override;
 	virtual void OnUpdate() override;
 	virtual void OnDestroy() override;
@@ -25,4 +27,10 @@ private:
 	VertexShader* m_VertexShader;
 	PixelShader* m_PixelShader;
 	ConstantBuffer* m_ConstantBuffer;
+
+	float m_OldDelta;
+	float m_NewDelta;
+	float m_DeltaTime;
+	float m_DeltaPosition;
+	float m_DeltaScale;
 };
