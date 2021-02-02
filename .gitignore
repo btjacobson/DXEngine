@@ -45,3 +45,5 @@
 *.user
 *.vcxproj
 *.idb
+*.shm
+*.wal
