@@ -6,7 +6,6 @@
 struct vertex
 {
 	Vector3D position;
-	Vector3D position1;
 	Vector3D color;
 	Vector3D color1;
 };
@@ -44,11 +43,25 @@ void AppWindow::UpdateQuadPosition()
 	
 	Matrix4x4 temp;
 
-	m_DeltaScale += m_DeltaTime / 0.15f;
+	m_DeltaScale += m_DeltaTime / 0.55f;
 
-	cc.m_World.SetScale(Vector3D::Lerp(Vector3D(0.5, 0.5, 0), Vector3D(1.0f, 1.0f, 0), (sin(m_DeltaScale) + 1.0f) / 2.0f));
-	temp.SetTranslation(Vector3D::Lerp(Vector3D(-1.5f, -1.5f, 0), Vector3D(1.5f, 1.5f, 0), m_DeltaPosition));
+	//cc.m_World.SetScale(Vector3D::Lerp(Vector3D(0.5, 0.5, 0), Vector3D(1.0f, 1.0f, 0), (sin(m_DeltaScale) + 1.0f) / 2.0f));
+	//temp.SetTranslation(Vector3D::Lerp(Vector3D(-1.5f, -1.5f, 0), Vector3D(1.5f, 1.5f, 0), m_DeltaPosition));
 
+	//cc.m_World *= temp;
+
+	cc.m_World.SetScale(Vector3D(1, 1, 1));
+
+	temp.SetIdentity();
+	temp.SetRotationZ(m_DeltaScale);
+	cc.m_World *= temp;
+
+	temp.SetIdentity();
+	temp.SetRotationY(m_DeltaScale);
+	cc.m_World *= temp;
+
+	temp.SetIdentity();
+	temp.SetRotationX(m_DeltaScale);
 	cc.m_World *= temp;
 
 	cc.m_View.SetIdentity();
@@ -73,23 +86,56 @@ void AppWindow::OnCreate()
 	RECT rc = GetClientWindowRect();
 	m_SwapChain->Init(m_Hwnd, rc.right - rc.left, rc.bottom - rc.top);
 
-	vertex list[] =
+	vertex vertexList[] =
 	{
-		{ Vector3D(-0.5f, -0.5f, 0.0f),	Vector3D(-0.32f, -0.11f, 0.0f),	Vector3D(0, 0, 0),	Vector3D(0, 1, 0) },
-		{ Vector3D(-0.5f, 0.5f, 0.0f),	Vector3D(-0.11f, 0.78f, 0.0f),	Vector3D(1, 1, 0),	Vector3D(0, 1, 1) },
-		{ Vector3D(0.5f, -0.5f, 0.0f),	Vector3D(0.75f, -0.73f, 0.0f),	Vector3D(0, 0, 1),	Vector3D(1, 0, 0) },
-		{ Vector3D(0.5f, 0.5f, 0.0f),	Vector3D(0.88f, 0.77f, 0.0f),	Vector3D(1, 1, 1),	Vector3D(0, 0, 1) }
+		// Front face
+		{ Vector3D(-0.5f, -0.5f, -0.5f),	Vector3D(1, 0, 0),		Vector3D(0.5, 0.5, 0.5) },
+		{ Vector3D(-0.5f,  0.5f, -0.5f),	Vector3D(1, 0, 0),		Vector3D(0.5, 0.5, 0.5) },
+		{ Vector3D( 0.5f,  0.5f, -0.5f),	Vector3D(1, 0, 0),		Vector3D(0.5, 0.5, 0.5) },
+		{ Vector3D( 0.5f, -0.5f, -0.5f),	Vector3D(1, 0, 0),		Vector3D(0.5, 0.5, 0.5) },
+
+		// Back face
+		{ Vector3D( 0.5f, -0.5f, 0.5f),		Vector3D(1, 0, 0),		Vector3D(0.5, 0.5, 0.5) },
+		{ Vector3D( 0.5f,  0.5f, 0.5f),		Vector3D(1, 0, 0),		Vector3D(0.5, 0.5, 0.5) },
+		{ Vector3D(-0.5f,  0.5f, 0.5f),		Vector3D(1, 0, 0),		Vector3D(0.5, 0.5, 0.5) },
+		{ Vector3D(-0.5f, -0.5f, 0.5f),		Vector3D(1, 0, 0),		Vector3D(0.5, 0.5, 0.5) }
 	};
 
 	m_VertexBuffer = GraphicsEngine::GetInstance()->CreateVertexBuffer();
-	UINT sizeList = ARRAYSIZE(list);
+	UINT sizeList = ARRAYSIZE(vertexList);
+
+	unsigned int indexList[] =
+	{
+		0, 1, 2,
+		2, 3, 0,
+
+		4, 5, 6,
+		6, 7, 4,
+
+		1, 6, 5,
+		5, 2, 1,
+
+		7, 0, 3,
+		3, 4, 7,
+
+		3, 2, 5,
+		5, 4, 3,
+
+		7, 6, 1,
+		1, 0, 7
+	};
+
+	m_IndexBuffer = GraphicsEngine::GetInstance()->CreateIndexBuffer();
+	UINT indexSizeList = ARRAYSIZE(indexList);
+
+	m_IndexBuffer->Load(indexList, indexSizeList);
 
 	void* shaderByteCode = nullptr;
 	size_t shaderSize = 0;
 
 	GraphicsEngine::GetInstance()->CompileVertexShader(L"VertexShader.hlsl", "vsmain", &shaderByteCode, &shaderSize);
 	m_VertexShader = GraphicsEngine::GetInstance()->CreateVertexShader(shaderByteCode, shaderSize);
-	m_VertexBuffer->Load(list, sizeof(vertex), sizeList, shaderByteCode, shaderSize);
+	m_VertexBuffer->Load(vertexList, sizeof(vertex), sizeList, shaderByteCode, shaderSize);
 
 	GraphicsEngine::GetInstance()->CompilePixelShader(L"PixelShader.hlsl", "psmain", &shaderByteCode, &shaderSize);
 	m_PixelShader = GraphicsEngine::GetInstance()->CreatePixelShader(shaderByteCode, shaderSize);
@@ -120,11 +166,14 @@ void AppWindow::OnUpdate()
 	GraphicsEngine::GetInstance()->GetImmediateDeviceContext()->SetPixelShader(m_PixelShader);
 
 	GraphicsEngine::GetInstance()->GetImmediateDeviceContext()->SetVertexBuffer(m_VertexBuffer);
-	GraphicsEngine::GetInstance()->GetImmediateDeviceContext()->DrawTriangleStrip(m_VertexBuffer->GetVertexSize(), 0);
+	GraphicsEngine::GetInstance()->GetImmediateDeviceContext()->SetIndexBuffer(m_IndexBuffer);
+
+	GraphicsEngine::GetInstance()->GetImmediateDeviceContext()->DrawIndexedTriangleList(m_IndexBuffer->GetIndexSize(), 0, 0);
 	m_SwapChain->Present(true);
 
 	m_OldDelta = m_NewDelta;
 	m_NewDelta = ::GetTickCount();
+
 	m_DeltaTime = (m_OldDelta) ? ((m_NewDelta - m_OldDelta) / 1000.0f) : 0;
 }
 
@@ -132,6 +181,8 @@ void AppWindow::OnDestroy()
 {
 	Window::OnDestroy();
 	m_VertexBuffer->Release();
+	m_IndexBuffer->Release();
+	m_ConstantBuffer->Release();
 	m_SwapChain->Release();
 	m_VertexShader->Release();
 	m_PixelShader->Release();
