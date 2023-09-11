@@ -9,6 +9,9 @@
 #pragma comment (lib, "d3dx11.lib")
 #pragma comment (lib, "d3dx10.lib")
 
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+
 // global declarations
 IDXGISwapChain* swapchain;             // the pointer to the swap chain interface
 ID3D11Device* dev;                     // the pointer to our Direct3D device interface
@@ -42,7 +45,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	RegisterClassEx(&wc);
 
 	hWnd = CreateWindowEx(NULL, L"WindowClass1", L"First Window", WS_OVERLAPPEDWINDOW, 300, 300,
-		windowsRect.right - windowsRect.left, windowsRect.bottom - windowsRect.top, NULL, NULL, hInstance, NULL);
+		SCREEN_WIDTH, SCREEN_HEIGHT, NULL, NULL, hInstance, NULL);
 
 	ShowWindow(hWnd, nCmdShow);
 
@@ -79,10 +82,13 @@ void InitD3D(HWND hWnd)
 
 	swapChainDesc.BufferCount = 1;
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.BufferDesc.Width = SCREEN_WIDTH;
+	swapChainDesc.BufferDesc.Height = SCREEN_HEIGHT;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.OutputWindow = hWnd;
 	swapChainDesc.SampleDesc.Count = 4;
 	swapChainDesc.Windowed = TRUE;
+	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	D3D11CreateDeviceAndSwapChain(NULL,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -110,8 +116,8 @@ void InitD3D(HWND hWnd)
 
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
-	viewport.Width = 800;
-	viewport.Height = 600;
+	viewport.Width = SCREEN_WIDTH;
+	viewport.Height = SCREEN_HEIGHT;
 
 	devcon->RSSetViewports(1, &viewport);
 }
@@ -125,6 +131,8 @@ void RenderFrame()
 
 void CleanD3D()
 {
+	swapchain->SetFullscreenState(FALSE, NULL);
+
 	swapchain->Release();
 	backBuffer->Release();
 	dev->Release();
