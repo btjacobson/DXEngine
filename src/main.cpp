@@ -12,14 +12,29 @@
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
 
+struct Vertex
+{
+	FLOAT x;
+	FLOAT y;
+	FLOAT z;
+
+	D3DXCOLOR color;
+};
+
 // global declarations
 IDXGISwapChain* swapchain;             // the pointer to the swap chain interface
 ID3D11Device* dev;                     // the pointer to our Direct3D device interface
 ID3D11DeviceContext* devcon;           // the pointer to our Direct3D device context
 ID3D11RenderTargetView* backBuffer;
+ID3D11VertexShader* vertexShader;
+ID3D11PixelShader* pixelShader;
+ID3D11Buffer* vertexBuffer;
+ID3D11InputLayout* layout;
 
 // function prototypes
 void InitD3D(HWND hWnd);     // sets up and initializes Direct3D
+void InitPipeline();
+void InitGraphics();
 void RenderFrame();
 void CleanD3D();         // closes Direct3D and releases memorys
 
@@ -44,7 +59,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	RegisterClassEx(&wc);
 
-	hWnd = CreateWindowEx(NULL, L"WindowClass1", L"First Window", WS_OVERLAPPEDWINDOW, 300, 300,
+	hWnd = CreateWindowEx(NULL, L"WindowClass1", L"Engine", WS_OVERLAPPEDWINDOW, 300, 300,
 		SCREEN_WIDTH, SCREEN_HEIGHT, NULL, NULL, hInstance, NULL);
 
 	ShowWindow(hWnd, nCmdShow);
@@ -120,11 +135,69 @@ void InitD3D(HWND hWnd)
 	viewport.Height = SCREEN_HEIGHT;
 
 	devcon->RSSetViewports(1, &viewport);
+
+	InitPipeline();
+	InitGraphics();
+}
+
+void InitPipeline()
+{
+	ID3D10Blob* vs;
+	ID3D10Blob* ps;
+
+	D3DX11CompileFromFile(L"shaders.shader", 0, 0, "VShader", "vs_4_0", 0, 0, 0, &vs, 0, 0);
+	D3DX11CompileFromFile(L"shaders.shader", 0, 0, "PShader", "ps_4_0", 0, 0, 0, &ps, 0, 0);
+
+	dev->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), NULL, &vertexShader);
+	dev->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), NULL, &pixelShader);
+
+	devcon->VSSetShader(vertexShader, 0, 0);
+	devcon->PSSetShader(pixelShader, 0, 0);
+
+	D3D11_INPUT_ELEMENT_DESC ied[] =
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+	};
+
+	dev->CreateInputLayout(ied, 2, vs->GetBufferPointer(), vs->GetBufferSize(), &layout);
+	devcon->IASetInputLayout(layout);
+}
+
+void InitGraphics()
+{
+	Vertex vertices[] =
+	{
+		{0.0f, 0.5f, 0.0f, D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f)},
+		{0.45f, -0.5f, 0.0f, D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f)},
+		{-0.45, -0.5f, 0.0f, D3DXCOLOR(0.0f, 0.0f, 1.0f, 1.0f)}
+	};
+
+	D3D11_BUFFER_DESC bDesc;
+	ZeroMemory(&bDesc, sizeof(bDesc));
+
+	bDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bDesc.ByteWidth = sizeof(Vertex) * 3;
+	bDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	dev->CreateBuffer(&bDesc, NULL, &vertexBuffer);
+
+	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+	devcon->Map(vertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
+	memcpy(mappedSubresource.pData, vertices, sizeof(vertices));
+	devcon->Unmap(vertexBuffer, NULL);
 }
 
 void RenderFrame()
 {
 	devcon->ClearRenderTargetView(backBuffer, D3DXCOLOR(0.22f, 0.22f, 0.22f, 1.0f));
+
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+		devcon->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+		devcon->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		devcon->Draw(3, 0);
 
 	swapchain->Present(0, 0);
 }
@@ -133,6 +206,10 @@ void CleanD3D()
 {
 	swapchain->SetFullscreenState(FALSE, NULL);
 
+	layout->Release();
+	vertexShader->Release();
+	pixelShader->Release();
+	vertexBuffer->Release();
 	swapchain->Release();
 	backBuffer->Release();
 	dev->Release();
