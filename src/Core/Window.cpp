@@ -1,10 +1,15 @@
 #include "Window.h"
 
-Window::Window(int width, int height, LPCWSTR title)
+Window::Window(int width, int height, int nCmdShow, LPCWSTR title, HINSTANCE hInstance)
 {
 	_width = width;
 	_height = height;
+	_cmdShow = nCmdShow;
 	_title = title;
+	_hInstance = hInstance;
+
+	_message = { 0 };
+	_wndRect = { 0, 0, _width, _height };
 
 	InitWindow();
 }
@@ -14,62 +19,53 @@ Window::~Window()
 
 }
 
-void Window::Run()
+int Window::Run()
 {
 	ProcessMessages();
+
+	return _message.wParam;
 }
 
 void Window::InitWindow()
 {
-	HWND hWnd;
-	WNDCLASSEX wc;
-	RECT windowsRect = { 0, 0, 500, 400 };
-	AdjustWindowRect(&windowsRect, WS_OVERLAPPEDWINDOW, FALSE);
+	AdjustWindowRect(&_wndRect, WS_OVERLAPPEDWINDOW, FALSE);
+	ZeroMemory(&_wndClass, sizeof(WNDCLASSEX));
 
-	ZeroMemory(&wc, sizeof(WNDCLASSEX));
+	_wndClass.cbSize = sizeof(WNDCLASSEX);
+	_wndClass.style = CS_HREDRAW | CS_VREDRAW;
+	_wndClass.lpfnWndProc = WindowProc;
+	_wndClass.hInstance = _hInstance;
+	_wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	_wndClass.hbrBackground = (HBRUSH)COLOR_WINDOW;
+	_wndClass.lpszClassName = L"WindowClass1";
 
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = WindowProc;
-	wc.hInstance = hInstance;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
-	wc.lpszClassName = L"WindowClass1";
+	RegisterClassEx(&_wndClass);
 
-	RegisterClassEx(&wc);
+	_wndHandle = CreateWindowEx(NULL, L"WindowClass1", _title, WS_OVERLAPPEDWINDOW, 300, 300,
+		_width, _height, NULL, NULL, _hInstance, NULL);
 
-	hWnd = CreateWindowEx(NULL, L"WindowClass1", _title, WS_OVERLAPPEDWINDOW, 300, 300,
-		_width, _height, NULL, NULL, hInstance, NULL);
-
-	ShowWindow(hWnd, nCmdShow);
+	ShowWindow(_wndHandle, _cmdShow);
 
 	_isRunning = true;
 }
 
-int Window::ProcessMessages()
+void Window::ProcessMessages()
 {
-	MSG msg = { 0 };
 	while (TRUE)
 	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		if (PeekMessage(&_message, NULL, 0, 0, PM_REMOVE))
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			TranslateMessage(&_message);
+			DispatchMessage(&_message);
 
-			if (msg.message == WM_QUIT)
+			if (_message.message == WM_QUIT)
 			{
 				break;
 			}
 		}
-		else
-		{
-
-		}
 
 		//RenderFrame();
 	}
-
-	return msg.wParam;
 }
 
 LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

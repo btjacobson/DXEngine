@@ -60,8 +60,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//	SCREEN_WIDTH, SCREEN_HEIGHT, NULL, NULL, hInstance, NULL);
 	//
 	//ShowWindow(hWnd, nCmdShow);
-	Window window = Window(800, 600, L"Test");
-	window.Run();
+	Window window = Window(800, 600, nCmdShow, L"Test", hInstance);
+	return window.Run();
 
 	//InitD3D(hWnd);
 
@@ -85,8 +85,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//
 	//	RenderFrame();
 	//}
-
-	return msg.wParam;
 }
 
 void InitD3D(HWND hWnd)
