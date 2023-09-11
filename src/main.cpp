@@ -4,7 +4,6 @@
 #include <d3dx11.h>
 #include <d3dx10.h>
 
-// include the Direct3D Library file
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dx11.lib")
 #pragma comment (lib, "d3dx10.lib")
@@ -21,22 +20,20 @@ struct Vertex
 	D3DXCOLOR color;
 };
 
-// global declarations
-IDXGISwapChain* swapchain;             // the pointer to the swap chain interface
-ID3D11Device* dev;                     // the pointer to our Direct3D device interface
-ID3D11DeviceContext* devcon;           // the pointer to our Direct3D device context
+IDXGISwapChain* swapchain;
+ID3D11Device* dev;        
+ID3D11DeviceContext* devcon;
 ID3D11RenderTargetView* backBuffer;
 ID3D11VertexShader* vertexShader;
 ID3D11PixelShader* pixelShader;
 ID3D11Buffer* vertexBuffer;
 ID3D11InputLayout* layout;
 
-// function prototypes
-void InitD3D(HWND hWnd);     // sets up and initializes Direct3D
+void InitD3D(HWND hWnd);
 void InitPipeline();
 void InitGraphics();
 void RenderFrame();
-void CleanD3D();         // closes Direct3D and releases memorys
+void CleanD3D();
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
