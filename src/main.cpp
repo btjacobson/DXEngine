@@ -1,5 +1,5 @@
-#include <Windows.h>
-#include <windowsx.h>
+#include "Core/Window.h"
+
 #include <d3d11.h>
 #include <d3dx11.h>
 #include <d3dx10.h>
@@ -39,50 +39,52 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	HWND hWnd;
-	WNDCLASSEX wc;
-	RECT windowsRect = { 0, 0, 500, 400 };
-	AdjustWindowRect(&windowsRect, WS_OVERLAPPEDWINDOW, FALSE);
+	//HWND hWnd;
+	//WNDCLASSEX wc;
+	//RECT windowsRect = { 0, 0, 500, 400 };
+	//AdjustWindowRect(&windowsRect, WS_OVERLAPPEDWINDOW, FALSE);
+	//
+	//ZeroMemory(&wc, sizeof(WNDCLASSEX));
+	//
+	//wc.cbSize = sizeof/(WNDCLASSEX);
+	//wc.style = CS_HREDRAW | CS_VREDRAW;
+	//wc.lpfnWndProc = WindowProc;
+	//wc.hInstance = hInstance;
+	//wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	//wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
+	//wc.lpszClassName = L"WindowClass1";
+	//
+	//RegisterClassEx(&wc);
+	//
+	//hWnd = CreateWindowEx(NULL, L"WindowClass1", L"Engine", WS_OVERLAPPEDWINDOW, 300, 300,
+	//	SCREEN_WIDTH, SCREEN_HEIGHT, NULL, NULL, hInstance, NULL);
+	//
+	//ShowWindow(hWnd, nCmdShow);
+	Window window = Window(800, 600, L"Test");
+	window.Run();
 
-	ZeroMemory(&wc, sizeof(WNDCLASSEX));
+	//InitD3D(hWnd);
 
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = WindowProc;
-	wc.hInstance = hInstance;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
-	wc.lpszClassName = L"WindowClass1";
-
-	RegisterClassEx(&wc);
-
-	hWnd = CreateWindowEx(NULL, L"WindowClass1", L"Engine", WS_OVERLAPPEDWINDOW, 300, 300,
-		SCREEN_WIDTH, SCREEN_HEIGHT, NULL, NULL, hInstance, NULL);
-
-	ShowWindow(hWnd, nCmdShow);
-
-	InitD3D(hWnd);
-
-	MSG msg = { 0 };
-	while (TRUE)
-	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-
-			if (msg.message == WM_QUIT)
-			{
-				break;
-			}
-		}
-		else
-		{
-
-		}
-
-		RenderFrame();
-	}
+	//MSG msg = { 0 };
+	//while (TRUE)
+	//{
+	//	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+	//	{
+	//		TranslateMessage(&msg);
+	//		DispatchMessage(&msg);
+	//
+	//		if (msg.message == WM_QUIT)
+	//		{
+	//			break;
+	//		}
+	//	}
+	//	else
+	//	{
+	//
+	//	}
+	//
+	//	RenderFrame();
+	//}
 
 	return msg.wParam;
 }
