@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include "../Rendering/DX_Renderer.h"
+
 Window::Window(int width, int height, int nCmdShow, LPCWSTR title, HINSTANCE hInstance)
 {
 	_width = width;
@@ -7,6 +9,8 @@ Window::Window(int width, int height, int nCmdShow, LPCWSTR title, HINSTANCE hIn
 	_cmdShow = nCmdShow;
 	_title = title;
 	_hInstance = hInstance;
+
+	_dxRenderer = new DX_Renderer(this);
 
 	_message = { 0 };
 	_wndRect = { 0, 0, _width, _height };
@@ -16,7 +20,8 @@ Window::Window(int width, int height, int nCmdShow, LPCWSTR title, HINSTANCE hIn
 
 Window::~Window()
 {
-
+	delete _dxRenderer;
+	_dxRenderer = nullptr;
 }
 
 int Window::Run()
@@ -24,6 +29,21 @@ int Window::Run()
 	ProcessMessages();
 
 	return _message.wParam;
+}
+
+int Window::GetWidth()
+{
+	return _width;
+}
+
+int Window::GetHeight()
+{
+	return _height;
+}
+
+HWND& Window::GetHandle()
+{
+	return _wndHandle;
 }
 
 void Window::InitWindow()
@@ -64,7 +84,7 @@ void Window::ProcessMessages()
 			}
 		}
 
-		//RenderFrame();
+		_dxRenderer->RenderFrame();
 	}
 }
 

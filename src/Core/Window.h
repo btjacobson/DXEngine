@@ -3,6 +3,8 @@
 #include <Windows.h>
 #include <windowsx.h>
 
+class DX_Renderer;
+
 class Window
 {
 public:
@@ -10,14 +12,17 @@ public:
 	~Window();
 
 	int Run();
-
-protected:
+	int GetWidth();
+	int GetHeight();
+	HWND& GetHandle();
 
 private:
 	void InitWindow();
-
 	void ProcessMessages();
+
 	static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+	DX_Renderer* _dxRenderer;
 
 	int _width;
 	int _height;
